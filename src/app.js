@@ -2,7 +2,9 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 require("dotenv").config();
+
 const bookRoutes = require("./routes/books");
+const authRoutes = require("./routes/auth");
 
 const app = express();
 
@@ -19,10 +21,22 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/books", bookRoutes);
+app.use("/api/auth", authRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ message: "Wystąpił błąd serwera!" });
+});
+
+const fs = require("fs");
+const path = require("path");
+
+app.use((req, res, next) => {
+  const log = `[${new Date().toISOString()}] ${req.method} ${req.url}\n`;
+  fs.appendFile(path.join(__dirname, "server.log"), log, (err) => {
+    if (err) console.error("Błąd zapisu do pliku log:", err);
+  });
+  next();
 });
 
 const PORT = process.env.PORT || 3000;
