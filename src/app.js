@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 require("dotenv").config();
+const bookRoutes = require("./routes/books");
 
 const app = express();
 
@@ -16,6 +17,8 @@ mongoose
 app.get("/", (req, res) => {
   res.json({ message: "Witaj w API Interaktywnej Biblioteki" });
 });
+
+app.use("/api/books", bookRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
