@@ -1,20 +1,66 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-require("dotenv").config();
+const http = require("http");
+const { Server } = require("socket.io");
+const path = require("path");
+require("dotenv").config({ path: path.resolve(__dirname, "../.env") });
 
+const app = express();
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+  pingTimeout: 60000,
+  pingInterval: 25000,
+  transports: ["websocket"],
+  connectTimeout: 45000,
+});
+
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
+app.use(express.json());
+
+const bookController = require("./controllers/bookController");
 const bookRoutes = require("./routes/books");
 const authRoutes = require("./routes/auth");
 
-const app = express();
-
-app.use(cors());
-app.use(express.json());
+bookController.setIO(io);
 
 mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => console.log("Połączono z MongoDB Atlas"))
   .catch((err) => console.error("Błąd połączenia z MongoDB:", err));
+
+io.on("connection", (socket) => {
+  console.log("Nowe połączenie WebSocket:", socket.id);
+
+  socket.on("error", (error) => {
+    console.error("Socket error:", error);
+  });
+
+  socket.on("book_notification", (data) => {
+    console.log("Otrzymano powiadomienie o książce:", data);
+    io.emit("book_notification", data);
+  });
+
+  socket.emit("book_notification", {
+    type: "CONNECTED",
+    message: "Połączono z serwerem WebSocket",
+  });
+
+  socket.on("disconnect", (reason) => {
+    console.log("Klient rozłączony:", socket.id, "Powód:", reason);
+  });
+});
 
 app.get("/", (req, res) => {
   res.json({ message: "Witaj w API Interaktywnej Biblioteki" });
@@ -28,18 +74,28 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: "Wystąpił błąd serwera!" });
 });
 
-const fs = require("fs");
-const path = require("path");
-
-app.use((req, res, next) => {
-  const log = `[${new Date().toISOString()}] ${req.method} ${req.url}\n`;
-  fs.appendFile(path.join(__dirname, "server.log"), log, (err) => {
-    if (err) console.error("Błąd zapisu do pliku log:", err);
+process.on("SIGTERM", () => {
+  console.log("Otrzymano SIGTERM. Zamykanie serwera...");
+  server.close(() => {
+    console.log("Serwer zamknięty");
+    process.exit(0);
   });
-  next();
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Serwer działa na porcie ${PORT}`);
-});
+const startServer = () => {
+  try {
+    server.listen(PORT, () => {
+      console.log(`Serwer działa na porcie ${PORT}`);
+    });
+  } catch (error) {
+    if (error.code === "EADDRINUSE") {
+      console.log(`Port ${PORT} jest zajęty, próbuję port ${PORT + 1}`);
+      server.listen(PORT + 1);
+    } else {
+      console.error("Błąd podczas uruchamiania serwera:", error);
+    }
+  }
+};
+
+startServer();
