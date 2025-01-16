@@ -6,7 +6,7 @@ export const authService = {
     if (response.data.token) {
       localStorage.setItem("token", response.data.token);
     }
-    return response.data;
+    return response;
   },
 
   register: async (username, password) => {

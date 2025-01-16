@@ -1,28 +1,34 @@
-import { useState } from 'react';
-import { authService } from '../../services/authService';
-import { useNavigate } from 'react-router-dom';
+import { useState } from "react";
+import { authService } from "../../services/authService";
+import { useNavigate } from "react-router-dom";
 
 const RegisterForm = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  // W RegisterForm.jsx dodajmy więcej logów
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (password !== confirmPassword) {
-      setError('Hasła nie są takie same');
+      setError("Hasła nie są takie same");
       return;
     }
 
     try {
       const response = await authService.register(username, password);
-      console.log('Zarejestrowano pomyślnie:', response);
-      navigate('/login'); 
+      console.log("Pełna odpowiedź z rejestracji:", response);
+      console.log("Dane użytkownika:", response.data);
+      navigate("/login");
     } catch (error) {
-      setError('Błąd rejestracji: ' + error.response?.data?.message || 'Spróbuj ponownie');
+      console.error("Błąd podczas rejestracji:", error);
+      setError(
+        "Błąd rejestracji: " + error.response?.data?.message ||
+          "Spróbuj ponownie"
+      );
     }
   };
 
@@ -37,7 +43,10 @@ const RegisterForm = () => {
       <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="username" className="block text-sm font-medium leading-6 text-gray-900">
+            <label
+              htmlFor="username"
+              className="block text-sm font-medium leading-6 text-gray-900"
+            >
               Nazwa użytkownika
             </label>
             <input
@@ -51,7 +60,10 @@ const RegisterForm = () => {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium leading-6 text-gray-900">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium leading-6 text-gray-900"
+            >
               Hasło
             </label>
             <input
@@ -65,7 +77,10 @@ const RegisterForm = () => {
           </div>
 
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium leading-6 text-gray-900">
+            <label
+              htmlFor="confirmPassword"
+              className="block text-sm font-medium leading-6 text-gray-900"
+            >
               Potwierdź hasło
             </label>
             <input
