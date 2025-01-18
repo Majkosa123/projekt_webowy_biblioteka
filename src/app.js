@@ -5,6 +5,7 @@ const http = require("http");
 const { Server } = require("socket.io");
 const path = require("path");
 require("dotenv").config({ path: path.resolve(__dirname, "../.env") });
+const reviewRoutes = require("./routes/reviews");
 
 const app = express();
 const server = http.createServer(app);
@@ -68,6 +69,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/books", bookRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/reviews", reviewRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);

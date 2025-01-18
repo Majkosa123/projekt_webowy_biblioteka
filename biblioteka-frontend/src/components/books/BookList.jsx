@@ -8,6 +8,8 @@ const BookList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { user } = useAuth();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [bookToDelete, setBookToDelete] = useState(null);
 
   useEffect(() => {
     fetchBooks();
@@ -21,6 +23,22 @@ const BookList = () => {
     } catch (error) {
       setError("Nie udało się pobrać książek");
       setLoading(false);
+    }
+  };
+
+  const handleDeleteClick = (book) => {
+    setBookToDelete(book);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      await bookService.deleteBook(bookToDelete._id);
+      setBooks(books.filter((book) => book._id !== bookToDelete._id));
+      setShowDeleteModal(false);
+      setBookToDelete(null);
+    } catch (error) {
+      setError("Nie udało się usunąć książki");
     }
   };
 
@@ -47,7 +65,11 @@ const BookList = () => {
             key={book._id}
             className="border rounded-lg shadow-lg p-6 bg-white"
           >
-            <h2 className="text-xl font-bold mb-2">{book.title}</h2>
+            <h2 className="text-xl font-bold mb-2">
+              <Link to={`/books/${book._id}`} className="hover:text-indigo-600">
+                {book.title}
+              </Link>
+            </h2>
             <p className="text-gray-600 mb-2">Autor: {book.author}</p>
             <p className="text-gray-600 mb-2">ISBN: {book.isbn}</p>
             <p className="text-gray-600 mb-2">Kategoria: {book.category}</p>
@@ -72,8 +94,14 @@ const BookList = () => {
                   >
                     Edytuj
                   </Link>
+                  <Link
+                    to={`/books/${book._id}/review/new`}
+                    className="text-blue-600 hover:text-blue-800"
+                  >
+                    Dodaj recenzję
+                  </Link>
                   <button
-                    onClick={() => handleDelete(book._id)}
+                    onClick={() => handleDeleteClick(book)}
                     className="text-red-600 hover:text-red-800"
                   >
                     Usuń
@@ -84,6 +112,33 @@ const BookList = () => {
           </div>
         ))}
       </div>
+
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg shadow-xl">
+            <h3 className="text-lg font-medium mb-4">
+              Potwierdzenie usunięcia
+            </h3>
+            <p>Czy na pewno chcesz usunąć książkę "{bookToDelete?.title}"?</p>
+            <div className="mt-4 flex justify-end space-x-3">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+              >
+                Anuluj
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+              >
+                Usuń
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {error && <div className="text-red-600 mt-4">{error}</div>}
     </div>
   );
 };

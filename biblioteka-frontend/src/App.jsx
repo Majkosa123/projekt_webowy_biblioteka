@@ -5,6 +5,8 @@ import LoginForm from "./components/auth/LoginForm";
 import RegisterForm from "./components/auth/RegisterForm";
 import BookList from "./components/books/BookList";
 import BookForm from "./components/books/BookForm";
+import ReviewForm from "./components/reviews/ReviewForm";
+import BookDetails from "./components/books/BookDetails";
 
 // Tymczasowy komponent Home
 const Home = () => <div>Witaj w BookSphere</div>;
@@ -22,6 +24,12 @@ function App() {
             <Route path="/books" element={<BookList />} />
             <Route path="/books/new" element={<BookForm />} />
             <Route path="/books/edit/:id" element={<BookForm />} />
+            <Route path="/books/:bookId/review/new" element={<ReviewForm />} />
+            <Route
+              path="/books/:bookId/review/edit/:reviewId"
+              element={<ReviewForm />}
+            />
+            <Route path="/books/:id" element={<BookDetails />} />
           </Routes>
         </div>
       </div>
