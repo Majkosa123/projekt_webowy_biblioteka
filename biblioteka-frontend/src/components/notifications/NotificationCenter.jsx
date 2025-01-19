@@ -8,34 +8,38 @@ const NotificationCenter = () => {
   const { user } = useAuth();
 
   useEffect(() => {
-    const newSocket = io("http://localhost:3000", {
-      transports: ["websocket"],
-    });
+    if (user) {
+      const newSocket = io("http://localhost:3000", {
+        withCredentials: true,
+        transports: ["websocket", "polling"],
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
+      });
 
-    newSocket.on("connect", () => {
-      console.log("Connected to WebSocket");
-    });
+      newSocket.on("connect", () => {
+        console.log("Connected to WebSocket");
+      });
 
-    newSocket.on("42", ([event, data]) => {
-      if (event === "book_notification") {
-        handleNotification(data);
-      }
-    });
+      newSocket.on("connect_error", (error) => {
+        console.log("WebSocket connection error:", error);
+      });
 
-    newSocket.on("user_notification", (data) => {
-      handleNotification(data);
-    });
+      newSocket.on("42", ([event, data]) => {
+        if (event === "book_notification") {
+          handleNotification(data);
+        }
+      });
 
-    newSocket.on("book_status_change", (data) => {
-      handleNotification(data);
-    });
+      setSocket(newSocket);
 
-    setSocket(newSocket);
-
-    return () => {
-      newSocket.close();
-    };
-  }, []);
+      // Cleanup przy odmontowaniu komponentu
+      return () => {
+        if (newSocket) {
+          newSocket.disconnect();
+        }
+      };
+    }
+  }, [user]);
 
   const handleNotification = (notification) => {
     setNotifications((prev) =>
@@ -53,27 +57,30 @@ const NotificationCenter = () => {
   if (!user) return null;
 
   return (
-    <div className="fixed top-20 right-4 z-50">
+    <div className="fixed top-20 right-4 z-50 max-w-sm w-full">
       {notifications.map((notification) => (
         <div
           key={notification.id}
-          className={`mb-2 p-4 rounded-lg shadow-lg max-w-sm animate-slide-in
+          className={`mb-2 p-4 rounded-lg shadow-lg bg-white border-l-4
             ${
-              notification.type === "CREATE"
-                ? "bg-green-100 border-l-4 border-green-500"
-                : notification.type === "UPDATE"
-                ? "bg-blue-100 border-l-4 border-blue-500"
-                : notification.type === "DELETE"
-                ? "bg-red-100 border-l-4 border-red-500"
-                : "bg-gray-100 border-l-4 border-gray-500"
+              notification.type === "STATUS_CHANGE"
+                ? "border-blue-500"
+                : notification.type === "AVAILABILITY"
+                ? "border-green-500"
+                : "border-gray-500"
             }`}
         >
           <div className="flex justify-between items-start">
-            <div>
-              <p className="font-medium">{notification.message}</p>
-              <p className="text-sm text-gray-600">
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-900">
+                {notification.message}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
                 {new Date(notification.timestamp).toLocaleTimeString()}
               </p>
+              {notification.source === "MQTT" && (
+                <p className="text-xs text-indigo-600 mt-1">via MQTT</p>
+              )}
             </div>
             <button
               onClick={() =>
@@ -81,7 +88,7 @@ const NotificationCenter = () => {
                   prev.filter((n) => n.id !== notification.id)
                 )
               }
-              className="text-gray-500 hover:text-gray-700"
+              className="ml-4 text-gray-400 hover:text-gray-500"
             >
               ×
             </button>

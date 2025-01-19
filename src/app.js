@@ -6,6 +6,7 @@ const { Server } = require("socket.io");
 const path = require("path");
 require("dotenv").config({ path: path.resolve(__dirname, "../.env") });
 const reviewRoutes = require("./routes/reviews");
+const { setupMQTT } = require("./mqtt/broker");
 
 const app = express();
 const server = http.createServer(app);
@@ -16,11 +17,13 @@ const io = new Server(server, {
     methods: ["GET", "POST"],
     credentials: true,
   },
+  allowEIO3: true,
+  transports: ["websocket", "polling"],
+  maxHttpBufferSize: 1e8,
   pingTimeout: 60000,
   pingInterval: 25000,
-  transports: ["websocket"],
-  connectTimeout: 45000,
 });
+setupMQTT(io);
 
 app.use(
   cors({

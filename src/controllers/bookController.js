@@ -1,4 +1,8 @@
 const Book = require("../models/Book");
+const {
+  publishBookStatus,
+  publishBookAvailability,
+} = require("../mqtt/broker");
 let io = null;
 
 exports.setIO = (socketIo) => {
@@ -78,6 +82,12 @@ exports.updateBook = async (req, res) => {
 
     if (!book) {
       return res.status(404).json({ message: "Nie znaleziono książki" });
+    }
+
+    if (book.status === "dostępna") {
+      publishBookAvailability(book);
+    } else {
+      publishBookStatus({ book });
     }
 
     if (io) {
