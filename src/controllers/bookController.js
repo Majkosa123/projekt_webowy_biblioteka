@@ -155,4 +155,53 @@ exports.searchBooks = async (req, res) => {
       error: error.message,
     });
   }
+
+  exports.updateBookStatus = async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+
+      const book = await Book.findById(id);
+      if (!book) {
+        return res.status(404).json({ message: "Nie znaleziono książki" });
+      }
+
+      const oldStatus = book.status;
+      book.status = status;
+      await book.save();
+
+      if (io) {
+        io.emit("42", [
+          "book_notification",
+          {
+            type: "STATUS_CHANGE",
+            message: `Status książki "${book.title}" zmienił się z "${oldStatus}" na "${status}"`,
+            book: book,
+          },
+        ]);
+
+        // Dodatkowe powiadomienie o dostępności
+        if (status === "dostępna" && oldStatus !== "dostępna") {
+          io.emit("42", [
+            "book_notification",
+            {
+              type: "AVAILABILITY",
+              message: `Książka "${book.title}" jest teraz dostępna!`,
+              book: book,
+            },
+          ]);
+        }
+      }
+
+      res.json({
+        message: "Status książki został zaktualizowany",
+        book,
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: "Nie udało się zaktualizować statusu książki",
+        error: error.message,
+      });
+    }
+  };
 };

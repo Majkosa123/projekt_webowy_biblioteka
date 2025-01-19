@@ -7,6 +7,7 @@ import BookList from "./components/books/BookList";
 import BookForm from "./components/books/BookForm";
 import ReviewForm from "./components/reviews/ReviewForm";
 import BookDetails from "./components/books/BookDetails";
+import NotificationCenter from "./components/notifications/NotificationCenter";
 
 // Tymczasowy komponent Home
 const Home = () => <div>Witaj w BookSphere</div>;
@@ -16,6 +17,7 @@ function App() {
     <AuthProvider>
       <div>
         <Navbar />
+        <NotificationCenter />
         <div className="container mx-auto px-4 py-8">
           <Routes>
             <Route path="/" element={<Home />} />
