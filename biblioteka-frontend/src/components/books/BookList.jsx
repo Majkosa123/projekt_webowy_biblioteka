@@ -2,11 +2,13 @@ import { useState, useEffect } from "react";
 import { bookService } from "../../services/bookService";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import _ from "lodash";
 
 const BookList = () => {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const { user } = useAuth();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [bookToDelete, setBookToDelete] = useState(null);
@@ -15,15 +17,28 @@ const BookList = () => {
     fetchBooks();
   }, []);
 
-  const fetchBooks = async () => {
+  const fetchBooks = async (query = "") => {
     try {
-      const response = await bookService.getAllBooks();
+      setLoading(true);
+      const response = query
+        ? await bookService.searchBooks(query)
+        : await bookService.getAllBooks();
       setBooks(response.data);
-      setLoading(false);
     } catch (error) {
       setError("Nie udało się pobrać książek");
+    } finally {
       setLoading(false);
     }
+  };
+
+  const debouncedSearch = _.debounce((query) => {
+    fetchBooks(query);
+  }, 500);
+
+  const handleSearch = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    debouncedSearch(query);
   };
 
   const handleDeleteClick = (book) => {
@@ -47,16 +62,41 @@ const BookList = () => {
 
   return (
     <div className="container mx-auto px-4">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Katalog książek</h1>
-        {user && (
-          <Link
-            to="/books/new"
-            className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
-          >
-            Dodaj książkę
-          </Link>
-        )}
+      <div className="space-y-4 mb-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold">Katalog książek</h1>
+          {user && (
+            <Link
+              to="/books/new"
+              className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
+            >
+              Dodaj książkę
+            </Link>
+          )}
+        </div>
+
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Szukaj książek po tytule, autorze, ISBN lub kategorii..."
+            value={searchQuery}
+            onChange={handleSearch}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+          />
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+            <svg
+              className="h-5 w-5 text-gray-400"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -9,7 +9,6 @@ const RegisterForm = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  // W RegisterForm.jsx dodajmy więcej logów
   const handleSubmit = async (e) => {
     e.preventDefault();
 
