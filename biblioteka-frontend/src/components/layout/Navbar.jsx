@@ -31,8 +31,22 @@ const Navbar = () => {
             >
               Książki
             </Link>
-
-            {!user ? (
+            {user && (
+              <Link
+                to="/chat"
+                className="text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium"
+              >
+                Czat
+              </Link>
+            )}
+            {user ? (
+              <button
+                onClick={handleLogout}
+                className="text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium"
+              >
+                Wyloguj
+              </button>
+            ) : (
               <div className="flex space-x-2">
                 <Link
                   to="/login"
@@ -47,13 +61,6 @@ const Navbar = () => {
                   Zarejestruj
                 </Link>
               </div>
-            ) : (
-              <button
-                onClick={handleLogout}
-                className="text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium"
-              >
-                Wyloguj
-              </button>
             )}
           </div>
         </div>

@@ -32,7 +32,6 @@ const NotificationCenter = () => {
 
       setSocket(newSocket);
 
-      // Cleanup przy odmontowaniu komponentu
       return () => {
         if (newSocket) {
           newSocket.disconnect();

@@ -7,13 +7,16 @@ const path = require("path");
 require("dotenv").config({ path: path.resolve(__dirname, "../.env") });
 const reviewRoutes = require("./routes/reviews");
 const { setupMQTT } = require("./mqtt/broker");
+const chatRoutes = require("./routes/chat");
+const bookController = require("./controllers/bookController");
+const chatController = require("./controllers/chatController");
 
 const app = express();
 const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173", "http://localhost:5174"],
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -23,21 +26,22 @@ const io = new Server(server, {
   pingTimeout: 60000,
   pingInterval: 25000,
 });
-setupMQTT(io);
 
+const mqttClient = setupMQTT(io);
+app.set("mqttClient", mqttClient);
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173", "http://localhost:5174"],
     credentials: true,
   })
 );
 app.use(express.json());
 
-const bookController = require("./controllers/bookController");
+chatController.setIO(io);
+bookController.setIO(io);
+
 const bookRoutes = require("./routes/books");
 const authRoutes = require("./routes/auth");
-
-bookController.setIO(io);
 
 mongoose
   .connect(process.env.MONGODB_URI)
@@ -73,6 +77,7 @@ app.get("/", (req, res) => {
 app.use("/api/books", bookRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/reviews", reviewRoutes);
+app.use("/api/chat", chatRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);

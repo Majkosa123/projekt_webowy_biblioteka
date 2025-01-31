@@ -84,10 +84,10 @@ exports.updateBook = async (req, res) => {
       return res.status(404).json({ message: "Nie znaleziono książki" });
     }
 
+    publishBookStatus({ book });
+
     if (book.status === "dostępna") {
       publishBookAvailability(book);
-    } else {
-      publishBookStatus({ book });
     }
 
     if (io) {
@@ -190,7 +190,6 @@ exports.searchBooks = async (req, res) => {
           },
         ]);
 
-        // Dodatkowe powiadomienie o dostępności
         if (status === "dostępna" && oldStatus !== "dostępna") {
           io.emit("42", [
             "book_notification",

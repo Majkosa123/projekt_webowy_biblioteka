@@ -20,11 +20,15 @@ const setupMQTT = (socketIo) => {
 
   client.on("connect", () => {
     console.log("✅ Połączono z publicznym brokerem MQTT");
+    console.log("MQTT Client ID:", client.options.clientId);
 
     const topics = [
       "booksphere/books/status",
       "booksphere/books/availability",
       "booksphere/notifications",
+      "booksphere/chat/messages",
+      "booksphere/chat/notifications",
+      "booksphere/chat/status",
     ];
 
     topics.forEach((topic) => {
@@ -102,8 +106,34 @@ const publishBookAvailability = (book) => {
   }
 };
 
+const publishChatMessage = (messageData) => {
+  if (client && client.connected) {
+    const payload = {
+      type: "CHAT_MESSAGE",
+      ...messageData,
+      timestamp: new Date().toISOString(),
+    };
+    client.publish("booksphere/chat/messages", JSON.stringify(payload));
+    console.log("📤 Opublikowano wiadomość czatu przez MQTT");
+  }
+};
+
+const publishChatNotification = (notificationData) => {
+  if (client && client.connected) {
+    const payload = {
+      type: "CHAT_NOTIFICATION",
+      ...notificationData,
+      timestamp: new Date().toISOString(),
+    };
+    client.publish("booksphere/chat/notifications", JSON.stringify(payload));
+    console.log("📤 Opublikowano powiadomienie czatu przez MQTT");
+  }
+};
+
 module.exports = {
   setupMQTT,
   publishBookStatus,
   publishBookAvailability,
+  publishChatMessage,
+  publishChatNotification,
 };

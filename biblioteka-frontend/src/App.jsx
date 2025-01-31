@@ -8,9 +8,8 @@ import BookForm from "./components/books/BookForm";
 import ReviewForm from "./components/reviews/ReviewForm";
 import BookDetails from "./components/books/BookDetails";
 import NotificationCenter from "./components/notifications/NotificationCenter";
-
-// Tymczasowy komponent Home
-const Home = () => <div>Witaj w BookSphere</div>;
+import ChatContainer from "./components/chat/ChatContainer";
+import Home from "./components/pages/Home";
 
 function App() {
   return (
@@ -32,6 +31,7 @@ function App() {
               element={<ReviewForm />}
             />
             <Route path="/books/:id" element={<BookDetails />} />
+            <Route path="/chat" element={<ChatContainer />} />
           </Routes>
         </div>
       </div>
