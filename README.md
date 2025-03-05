@@ -5,7 +5,7 @@ Interaktywna Biblioteka to nowoczesna aplikacja webowa umożliwiająca zarządza
 ## 🎥 Film prezentacyjny
 
 Prezentacja projektu jest dostępna na YouTube. Możesz ją obejrzeć pod poniższym linkiem:
-[🎬 Zobacz film na YouTube](https://www.youtube.com/link-do-filmu)
+[🎬 Zobacz film na YouTube](https://youtu.be/18YA6M5-Dkw)
 
 ## ✨ Funkcjonalności
 
